@@ -78,7 +78,7 @@ def generate_data(data_dir = None, check = False):
     with parallel.no_daemon_pool() as pool:
         pool.lmap(_generate_flux_data, files)
 
-def get_data(data_dir = None, check = False):
+def get_data(data_dir = None, check = False, *args, **kwargs):
     data_dir = get_data_dir(data_dir)
     
     bigg   = BiGG()
@@ -97,6 +97,6 @@ def get_data(data_dir = None, check = False):
 
     generate_data(data_dir = data_dir, check = check)
 
-def preprocess_data(data_dir = None, check = False):
+def preprocess_data(data_dir = None, check = False, *args, **kwargs):
     data_dir = get_data_dir(data_dir)
     # do something ...
