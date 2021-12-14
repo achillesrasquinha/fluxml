@@ -14,10 +14,10 @@ coveralls
 pluggy<1,>=0.12.0
 docstr-coverage
 git+git://github.com/achillesrasquinha/bpyutils.git@develop#egg=bpyutils
-git+git://github.com/achillesrasquinha/deeply.git@develop#egg=deeply
+# git+git://github.com/achillesrasquinha/deeply.git@develop#egg=deeply
 bioservices
 cobra
-memote
+# memote
 pipenv
 jedi<0.18
 ipython

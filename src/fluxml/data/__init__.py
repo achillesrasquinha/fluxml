@@ -1,57 +1,45 @@
 import os.path as osp
-from functools import partial
 import gzip
 
-from fluxml.config import PATH
+from fluxml.config import DEFAULT
 from fluxml import __name__ as NAME
 
-from bpyutils.util.environ import getenv
+from bpyutils.util.ml      import get_data_dir
+from bpyutils.util.types   import build_fn
 from bpyutils.util.system  import (
-    makedirs,
     get_files,
     make_temp_file
 )
+from bpyutils.util.string  import get_random_str
 from bpyutils.util.types   import lmap
 from bpyutils              import parallel, log
 
 from bioservices import BiGG
 
 import cobra
-from   memote.support.helpers import find_transport_reactions
 
-_PREFIX = NAME.upper()
+logger  = log.get_logger()
 
-DEFAULT_BIGG_MODEL_ID = "e_coli_core"
-
-logger = log.get_logger()
-
-def get_data_dir(data_dir = None):
-    data_dir = data_dir \
-        or getenv("DATA_DIR", prefix = _PREFIX) \
-        or osp.join(PATH["CACHE"], "data")
-
-    makedirs(data_dir, exist_ok = True)
-
-    return data_dir
+CSV_HEADER = []
 
 def _download_bigg_model(model_id, data_dir = None):
-    data_dir = get_data_dir(data_dir = data_dir)
+    data_dir = get_data_dir(NAME, data_dir = data_dir)
     target   = osp.join(data_dir, "%s.xml.gz" % model_id)
 
-    bigg     = BiGG()
-    bigg.download(model_id, format_='xml', target = target)
+    if not osp.exists(target):
+        logger.info("Downloading BiGG Model %s..." % model_id)
 
-def _prune_model(model):
-    rxn_exchange  = model.exchanges
-    rxn_transport = list(find_transport_reactions(model))
-    
-    prune_rxns    = rxn_exchange; # + rxn_transport
+        bigg = BiGG()
+        bigg.download(model_id, format_ = "xml", target = target)
+    else:
+        logger.warn("BiGG Model %s already downloaded." % model_id)
 
-    for rxn in prune_rxns:
-        rxn.remove_from_model(remove_orphans = True)
+def generate_flux_data(sbml_path, *args, **kwargs):
+    data_dir = get_data_dir(NAME, kwargs.get("data_dir"))
 
-def _generate_flux_data(sbml_path, data_dir = None):
-    model = None
+    model    = None
+
+    logger.info("Generating flux data for model at path: %s" % sbml_path)
 
     with gzip.open(sbml_path, "rb") as read_f:
         with make_temp_file() as tmp_file:
@@ -63,37 +51,36 @@ def _generate_flux_data(sbml_path, data_dir = None):
 
     if not model:
         raise ValueError("Unknown error while reading SBML file.")
-    
-    # _prune_model(model)
+
+    name       = model.name or get_random_str()
+    output_csv = osp.join(data_dir, "%s.csv" % name)
+
+    # if not osp.exists(output_csv):
+    #     write(output_csv, ",".join(CSV_HEADER))
 
 def generate_data(data_dir = None, check = False):
-    data_dir = get_data_dir(data_dir)
+    data_dir = get_data_dir(NAME, data_dir = data_dir)
     # TODO: Generate Data
-
     files    = get_files(data_dir, "*.gz")
 
     if check:
-        files = (osp.join(data_dir, "%s.xml.gz" % DEFAULT_BIGG_MODEL_ID),)
+        files = (osp.join(data_dir, "%s.xml.gz" % DEFAULT["bigg_model_id"]),)
     
     with parallel.no_daemon_pool() as pool:
-        pool.lmap(_generate_flux_data, files)
+        pool.lmap(generate_flux_data, files)
 
 def get_data(data_dir = None, check = False, *args, **kwargs):
-    data_dir = get_data_dir(data_dir)
+    data_dir = get_data_dir(NAME, data_dir)
     
     bigg   = BiGG()
     models = lmap(lambda x: x["bigg_id"], bigg.models)
 
     if check:
-        models = (DEFAULT_BIGG_MODEL_ID,)
+        models = (DEFAULT["bigg_model_id"],)
     
     with parallel.no_daemon_pool() as pool:
-        pool.map(
-            partial(
-                _download_bigg_model,
-                **dict(data_dir = data_dir)
-            )
-        , models)
+        function_ = build_fn(_download_bigg_model, data_dir = data_dir)
+        pool.map(function_, models)
 
     generate_data(data_dir = data_dir, check = check)
 
