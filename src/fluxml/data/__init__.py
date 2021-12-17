@@ -18,7 +18,7 @@ from bioservices import BiGG
 
 import cobra
 
-logger  = log.get_logger()
+logger = log.get_logger()
 
 CSV_HEADER = []
 
