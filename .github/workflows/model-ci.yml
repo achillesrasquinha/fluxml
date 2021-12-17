@@ -23,6 +23,4 @@ jobs:
           python setup.py develop
       - name: Run Pipeline
         run: |
-          bpyutils -m fluxml.data.get_data
-          bpyutils -m fluxml.data.preprocess_data
-          bpyutils -m fluxml.pipelines.train
+          bpyutils --run-ml fluxml

@@ -38,4 +38,4 @@ jobs:
           python setup.py develop
       - name: Run Jobs
         run: |
-          python -c "import fluxml; fluxml.run_all_jobs()"
+          bpyutils --run-jobs fluxml.jobs

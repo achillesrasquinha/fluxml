@@ -37,6 +37,7 @@ SPHINXAUTOBUILD			= ${VENVBIN}sphinx-autobuild
 TWINE					= ${VENVBIN}twine
 
 DOCKER_IMAGE		   ?= ${DOCKER_REGISTRY}/${DOCKER_USERNAME}/${PROJECT}
+DOCKER_BUILDKIT		   ?= 1
 
 
 SQLITE				   ?= sqlite
@@ -116,7 +117,7 @@ ifneq (${ENVIRONMENT},test)
 	@clear
 
 	$(call log,INFO,Cleaning Python Cache)
-	@find $(BASEDIR) | grep -E "__pycache__|\.pyc" | xargs rm -rf
+	@find $(BASEDIR) | grep -E "__pycache__|\.pyc|\.egg-info" | xargs rm -rf
 
 	@rm -rf \
 		$(BASEDIR)/*.egg-info \
@@ -128,6 +129,7 @@ ifneq (${ENVIRONMENT},test)
 		$(BASEDIR)/htmlcov \
 		$(BASEDIR)/dist \
 		$(BASEDIR)/build \
+		$(BASEDIR)/*.log \
 		~/.config/$(PROJECT)
 
 	$(call log,SUCCESS,Cleaning Successful)
@@ -198,8 +200,25 @@ ifeq (${launch},true)
 	$(call browse,file:///${DOCSDIR}/build/index.html)
 endif
 
-docker-build: clean ## Build the Docker Image.
+docker-pull: ## Pull Latest Docker Images
+	$(call log,INFO,Pulling latest Docker Image)
+
+	if [[ -d "${BASEDIR}/docker/files" ]]; then \
+		for folder in `ls ${BASEDIR}/docker/files`; do \
+			docker pull $(DOCKER_IMAGE):$$folder || true; \
+		done; \
+	fi
+
+	@docker pull $(DOCKER_IMAGE):latest || true
+
+docker-build: clean docker-pull ## Build the Docker Image.
 	$(call log,INFO,Building Docker Image)
+
+	if [[ -d "${BASEDIR}/docker/files" ]]; then \
+		for folder in `ls ${BASEDIR}/docker/files`; do \
+			docker build ${BASEDIR}/docker/files/$$folder --tag $(DOCKER_IMAGE):$$folder $(DOCKER_BUILD_ARGS) ; \
+		done \
+	fi
 
 	@docker build $(BASEDIR) --tag $(DOCKER_IMAGE) $(DOCKER_BUILD_ARGS)
 

@@ -15,12 +15,11 @@ except ImportError:
 from fluxml.__attr__ import (
     __name__,
     __version__,
-
-
+    __build__,
     __description__,
-
     __author__
 )
+from fluxml.config      import PATH
 from fluxml.__main__    import main
 
 from bpyutils.cache       import Cache
