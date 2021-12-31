@@ -2,26 +2,18 @@
 from __future__ import absolute_import
 
 # imports - standard imports
-import sys, os
-import re
-import json
-import multiprocessing as mp
-from   functools import partial
+import os.path as osp
 import traceback
 
-from fluxml.commands.util 	import cli_format
-from bpyutils.util.array    	import flatten, sequencify
+from fluxml.commands.util 	    import cli_format
 from bpyutils.util._dict        import merge_dict
-from bpyutils.util.system   	import (read, write, touch, popen, which)
-from bpyutils.util.environ  	import getenvvar
-from bpyutils.util.datetime 	import get_timestamp_str
-from bpyutils.util.imports      import import_or_raise
+from bpyutils.util.system   	import touch
 from bpyutils.config			import environment
-from bpyutils import request as req, log, parallel
-from fluxml 	import cli
-from bpyutils._compat		    import builtins, iteritems
-from fluxml.__attr__      	import __name__
-from fluxml.exception      import DependencyNotFoundError
+from bpyutils import log
+from fluxml   import cli
+from bpyutils._compat		    import iteritems
+from fluxml.__attr__      	    import __name__
+from fluxml.exception           import DependencyNotFoundError
 
 logger   = log.get_logger(level = log.DEBUG)
 
@@ -84,3 +76,9 @@ def _command(*args, **kwargs):
         touch(file_)
     
     logger.info("Using %s jobs..." % a.jobs)
+
+    if a.fasta:
+        fasta = osp.abspath(a.fasta)
+        
+        if not osp.exists(fasta):
+            raise ValueError("No FASTA file found.")
