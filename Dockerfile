@@ -8,8 +8,12 @@ ENV FLUXML_PATH=/usr/local/src/fluxml \
 RUN apk add --no-cache \
         bash \
         git && \
+    git clone https://github.com/Gaius-Augustus/Augustus.git /Augustus && \
+    cd /Augustus && \
+    make install && \
     wget http://github.com/bbuchfink/diamond/releases/download/v${DIAMOND_VERSION}/diamond-linux64.tar.gz && \
-    mkdir -p $FLUXML_PATH
+    mkdir -p $FLUXML_PATH && \
+    rm -rf /Augustus
 
 COPY . $FLUXML_PATH
 COPY ./docker/entrypoint.sh /entrypoint.sh
