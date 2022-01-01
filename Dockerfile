@@ -1,11 +1,12 @@
-FROM  python:3.9-alpine
+FROM  python:3.9
 
 LABEL maintainer=achillesrasquinha@gmail.com
 
 ENV FLUXML_PATH=/usr/local/src/fluxml \
     DIAMOND_VERSION=2.0.13
 
-RUN apk add --no-cache \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
         bash \
         git \
         make && \
