@@ -8,6 +8,7 @@ ENV FLUXML_PATH=/usr/local/src/fluxml \
 RUN apk add --no-cache \
         bash \
         git && \
+        make && \
     git clone https://github.com/Gaius-Augustus/Augustus.git /Augustus && \
     cd /Augustus && \
     make install && \
