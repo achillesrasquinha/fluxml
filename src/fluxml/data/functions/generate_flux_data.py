@@ -15,6 +15,7 @@ from bpyutils.util._csv    import write as write_csv
 from bpyutils              import log, parallel
 
 import cobra
+from cobra.flux_analysis.variability import find_essential_reactions
 import optlang
 
 from fluxml import settings
@@ -27,20 +28,11 @@ CSV_HEADER_POST = ["objective_value"]
 MINIMUM_LOWER_BOUND = -1000
 MAXIMUM_UPPER_BOUND =  1000
 
-def optimize_model_and_save(model, output, **kwargs):
-    solution  = model.optimize()
-
-    if solution.status != optlang.interface.INFEASIBLE:
-        objective_value = solution.objective_value
-
-        row = []
-
-        for reaction in model.reactions:
-            row += reaction.bounds
-
-        row.append(objective_value)
-
-        write_csv(output, row, mode = "a+")
+STRATEGIES = [
+    knock_out_random_genes,
+    knock_out_random_reactions,
+    randomize_reaction_bounds
+]
 
 def knock_out_random_genes(model, output):
     logger.info("Using strategy: knock_out_random_genes...")
@@ -98,6 +90,21 @@ def randomize_reaction_bounds(model, output):
 
             optimize_model_and_save(model, output)
 
+def optimize_model_and_save(model, output, **kwargs):
+    solution  = model.optimize()
+
+    if solution.status != optlang.interface.INFEASIBLE:
+        objective_value = solution.objective_value
+
+        row = []
+
+        for reaction in model.reactions:
+            row += reaction.bounds
+
+        row.append(objective_value)
+
+        write_csv(output, row, mode = "a+")
+
 def mutate_model_and_save(strategy, model, output):
     strategy(model, output)
 
@@ -129,12 +136,6 @@ def generate_flux_data(sbml_path, **kwargs):
                 header = CSV_HEADER_PRE + reaction_bounds_columns + CSV_HEADER_POST
                 write_csv(output_csv, header)
 
-            strategies  = [
-                knock_out_random_genes,
-                knock_out_random_reactions,
-                randomize_reaction_bounds
-            ]
-
             with parallel.no_daemon_pool(processes = jobs) as pool:
                 function = build_fn(mutate_model_and_save, model = model, output = output_csv)
-                list(pool.map(function, strategies))
+                list(pool.map(function, STRATEGIES))

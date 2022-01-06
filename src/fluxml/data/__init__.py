@@ -26,7 +26,7 @@ def generate_data(data_dir = None, check = False, *args, **kwargs):
     if check:
         files = (osp.join(data_dir, "%s.xml.gz" % DEFAULT["bigg_model_id"]),)
     
-    with parallel.no_daemon_pool(processors = jobs) as pool:
+    with parallel.no_daemon_pool(processes = jobs) as pool:
         pool.lmap(generate_flux_data, files)
 
 def get_data(data_dir = None, check = False, *args, **kwargs):
