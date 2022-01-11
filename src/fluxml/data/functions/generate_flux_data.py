@@ -28,12 +28,6 @@ CSV_HEADER_POST = ["objective_value"]
 MINIMUM_LOWER_BOUND = -1000
 MAXIMUM_UPPER_BOUND =  1000
 
-STRATEGIES = [
-    knock_out_random_genes,
-    knock_out_random_reactions,
-    randomize_reaction_bounds
-]
-
 def knock_out_random_genes(model, output):
     logger.info("Using strategy: knock_out_random_genes...")
 
@@ -107,6 +101,12 @@ def optimize_model_and_save(model, output, **kwargs):
 
 def mutate_model_and_save(strategy, model, output):
     strategy(model, output)
+
+STRATEGIES = [
+    knock_out_random_genes,
+    knock_out_random_reactions,
+    randomize_reaction_bounds
+]
 
 def generate_flux_data(sbml_path, **kwargs):
     jobs = kwargs.get("jobs", settings.get("jobs"))

@@ -52,3 +52,7 @@ html_sidebars       = {
         "sidebar.html"
     ]
 }
+
+html_js_files       = [
+    "js/main.js"
+]
