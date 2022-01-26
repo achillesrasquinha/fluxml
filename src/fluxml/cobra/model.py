@@ -2,7 +2,8 @@ from cobra.core.model import Model as COBRAPyModel
 
 from bpyutils._compat import iteritems
 
-from fluxml.cobra.problem import Problem
+from fluxml.cobra.optimization import Problem
+from fluxml.cobra.util import create_sparse_stoichiometric_matrix
 
 class Model(COBRAPyModel):
     def __init__(self, *args, **kwargs):
@@ -22,28 +23,16 @@ class Model(COBRAPyModel):
 
         return objectives
 
+    @property
+    def sparse_stoichiometric_matrix(self):
+        return create_sparse_stoichiometric_matrix(self)
+
     def optimize(self, *args, **kwargs):
-        def get_bounds(type_):
-            attr    = "%s_bound" % type_
-            bounds  = []
+        algorithm = kwargs.get("algorithm", "nsga2")
 
-            for reaction in self.reactions:
-                bound = getattr(reaction, attr)
-                bounds += [bound, bound]
+        problem   = Problem(self)
 
-            return bounds
+        solution  = problem.solve(algorithm = algorithm)
 
-        for key, item in iteritems(self.constraints):
-            pass
-
-        problem  = Problem(
-            n_var       = len(self.variables),
-            n_obj       = len(self.objectives),
-            xl          = get_bounds("lower"),
-            xu          = get_bounds("upper"),
-
-            constraints = self.constraints,
-        )
-
-        solution = self._super.optimize(*args, **kwargs)
+        solution  = self._super.optimize(*args, **kwargs)
         return solution
