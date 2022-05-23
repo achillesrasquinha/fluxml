@@ -1,6 +1,4 @@
-git+git://github.com/achillesrasquinha/bpyutils.git@develop#egg=bpyutils
-# git+git://github.com/achillesrasquinha/deeply.git@develop#egg=deeply
+bpyutils
 bioservices
 cobra
 pymoo
-# memote

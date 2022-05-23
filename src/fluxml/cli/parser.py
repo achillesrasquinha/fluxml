@@ -34,8 +34,8 @@ def get_parser():
         formatter_class = ArgumentParserFormatter
     )
 
-    parser.add_argument("fasta",
-        help    = "Sequence file."
+    parser.add_argument("--fasta",
+        help    = "A FASTA File."
     )
 
     parser.add_argument("-y", "--yes",

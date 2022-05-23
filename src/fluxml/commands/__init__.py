@@ -12,10 +12,10 @@ from bpyutils.config			import environment
 from bpyutils import log
 from fluxml   import cli
 from bpyutils._compat		    import iteritems
-from fluxml.__attr__      	    import __name__
+from fluxml.__attr__      	    import __name__ as NAME
 from fluxml.exception           import DependencyNotFoundError
 
-logger   = log.get_logger(level = log.DEBUG)
+logger   = log.get_logger(name = NAME, level = log.DEBUG)
 
 ARGUMENTS = dict(
     jobs						= 1,
@@ -79,6 +79,10 @@ def _command(*args, **kwargs):
 
     if a.fasta:
         fasta = osp.abspath(a.fasta)
+        print(fasta)
         
         if not osp.exists(fasta):
             raise ValueError("No FASTA file found.")
+        
+        logger.info("Processing FASTA file %s..." % fasta)
+        
